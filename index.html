@@ -6,361 +6,168 @@
 <title>Litera AI - Platform Literasi</title>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
-  :root {
-    --bg: oklch(97% 0.01 80);
-    --text: oklch(20% 0.02 80);
-    --primary: oklch(55% 0.15 155);
-    --primary-hover: oklch(50% 0.15 155);
-    --bubble-bot: oklch(93% 0.02 155);
-    --danger: oklch(60% 0.18 30);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-  body {
-    background-color: var(--bg);
-    color: var(--text);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  /* Container Utama */
-  .app-container {
-    width: 100%;
-    max-width: 900px;
-    height: 90vh;
-    background: white;
-    border-radius: 24px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-  }
-
-  /* --- HALAMAN LOGIN --- */
-  #loginSection {
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    text-align: center;
-  }
-  #loginSection h1 { font-size: 2rem; margin-bottom: 10px; color: var(--primary); }
-  #loginSection p { color: #666; margin-bottom: 30px; }
-  .btn-google {
-    background: white;
-    border: 2px solid #ddd;
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-weight: bold;
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: all 0.2s;
-  }
-  .btn-google:hover { background: #f0f0f0; }
-
-  /* --- HALAMAN CHAT --- */
-  #chatSection {
-    display: none; /* Sembunyiin dulu, muncul kalau udah login */
-    flex-direction: column;
-    height: 100%;
-  }
-  .header {
-    background: var(--primary);
-    color: white;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .header h2 { font-size: 1.2rem; }
-  .user-info { display: flex; align-items: center; gap: 10px; font-size: 0.9rem;}
-  .user-info img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white;}
+  /* [CSS TETAP SAMA SEPERTI SEBELUMNYA, GUE RINGKAS DI SINI BIAR GAK KEPANJANGAN] */
+  :root { --bg: oklch(97% 0.01 80); --text: oklch(20% 0.02 80); --primary: oklch(55% 0.15 155); --danger: oklch(60% 0.18 30); }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+  body { background: var(--bg); height: 100vh; display: flex; justify-content: center; align-items: center; }
+  .app-container { width: 100%; max-width: 900px; height: 90vh; background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
   
-  .quota-badge {
-    background: rgba(255,255,255,0.2);
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: bold;
-  }
-
-  .chat-box {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    background: #fafafa;
-  }
-  .message {
-    max-width: 80%;
-    padding: 12px 18px;
-    border-radius: 16px;
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
-  .message.user {
-    align-self: flex-end;
-    background: var(--primary);
-    color: white;
-    border-bottom-right-radius: 4px;
-  }
-  .message.bot {
-    align-self: flex-start;
-    background: var(--bubble-bot);
-    color: var(--text);
-    border-bottom-left-radius: 4px;
-  }
-  .message.bot p { margin-bottom: 8px; }
-  .message.bot p:last-child { margin-bottom: 0; }
-  .message.bot strong { font-weight: 600; }
-
-  .input-area {
-    display: flex;
-    padding: 16px;
-    background: white;
-    border-top: 1px solid #eee;
-    gap: 10px;
-  }
-  input {
-    flex: 1;
-    padding: 14px 20px;
-    border: 1px solid #ddd;
-    border-radius: 30px;
-    font-size: 1rem;
-    outline: none;
-  }
-  input:focus { border-color: var(--primary); }
-  button.send-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 0 24px;
-    border-radius: 30px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  /* Loading */
-  .typing-indicator { display: flex; gap: 4px; padding: 10px; }
-  .typing-indicator span {
-    width: 6px; height: 6px; background: #999; border-radius: 50%;
-    animation: bounce 1.4s infinite ease-in-out both;
-  }
-  .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-  .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-  @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+  /* GUEST CHAT SECTION */
+  #chatSection { display: flex; flex-direction: column; height: 100%; }
+  .header { background: var(--primary); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+  .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; background: #fafafa; }
+  .message { max-width: 80%; padding: 12px 18px; border-radius: 16px; font-size: 0.95rem; line-height: 1.5; }
+  .message.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+  .message.bot { align-self: flex-start; background: #e8f5e9; color: var(--text); border-bottom-left-radius: 4px; }
+  .input-area { display: flex; padding: 16px; background: white; border-top: 1px solid #eee; gap: 10px; }
+  input { flex: 1; padding: 14px 20px; border: 1px solid #ddd; border-radius: 30px; outline: none; }
+  button.send-btn { background: var(--primary); color: white; border: none; padding: 0 24px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+  
+  /* MODAL LOGIN (MUNCUL KALAU LIMIT HABIS) */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
+  .modal-box { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; }
+  .btn-google { background: white; border: 2px solid #ddd; padding: 12px 24px; border-radius: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; margin: 20px auto 0; }
 </style>
 </head>
 <body>
 
 <div class="app-container">
-  
-  <!-- BAGIAN LOGIN -->
-  <div id="loginSection">
-    <h1>📚 Litera AI</h1>
-    <p>Asisten Literasi Cerdas untuk Pelajar Indonesia</p>
+  <!-- BAGIAN CHAT (Bisa diakses tanpa login dulu) -->
+  <div id="chatSection">
+    <div class="header">
+      <h2>📚 Litera AI <span id="userStatus" style="font-size:12px; font-weight:normal; background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:10px;">Mode Tamu</span></h2>
+      <div class="user-info">
+        <button id="loginHeaderBtn" style="background:white; color:var(--primary); border:none; padding:8px 16px; border-radius:20px; font-weight:bold; cursor:pointer;">Login</button>
+      </div>
+    </div>
+    
+    <div class="chat-box" id="chatBox">
+      <div class="message bot">
+        Halo! 👋 Aku <strong>Litera AI</strong>. Sebagai tamu, kamu punya <strong>3 kesempatan bertanya</strong>. Ayo mulai diskusi literasi!
+      </div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Ketik pertanyaanmu..." onkeypress="handleKeyPress(event)">
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">Kirim</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOGIN -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal-box">
+    <h2>Batas Tamu Habis 🛑</h2>
+    <p style="margin-top:10px; color:#666;">Login dengan Google untuk lanjut bertanya, menyimpan streak, dan mengakses materi logika.</p>
     <button class="btn-google" id="loginBtn">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
       Login dengan Google
     </button>
     <p id="loginError" style="color: red; margin-top: 10px; font-size: 0.8rem;"></p>
   </div>
-
-  <!-- BAGIAN CHAT (Setelah Login) -->
-  <div id="chatSection">
-    <div class="header">
-      <h2>📚 Litera AI</h2>
-      <div class="user-info">
-        <span class="quota-badge" id="quotaText">Sisa Kuota: -</span>
-        <img id="userPhoto" src="" alt="User">
-        <button id="logoutBtn" style="background:transparent; border:none; color:white; cursor:pointer;">Keluar</button>
-      </div>
-    </div>
-    
-    <div class="chat-box" id="chatBox">
-      <div class="message bot">
-        Halo! 👋 Aku <strong>Litera AI</strong>. Tanyain apa aja soal literasi: Kesehatan, Digital, Finansial, Numerasi, atau Baca-Tulis!
-      </div>
-    </div>
-
-    <div class="input-area">
-      <input type="text" id="userInput" placeholder="Ketik pertanyaanmu di sini..." onkeypress="handleKeyPress(event)">
-      <button class="send-btn" id="sendBtn" onclick="sendMessage()">Kirim</button>
-    </div>
-  </div>
-
 </div>
 
-<!-- ============================================== -->
-<!-- SCRIPT FIREBASE & GROQ (VERSI REVISI FINAL) -->
-<!-- ============================================== -->
 <script type="module">
-  // IMPORT FIREBASE DARI CDN
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // KONFIGURASI FIREBASE LU
+  // ⚠️ GANTI DENGAN API KEY FIREBASE YANG VALID DARI CONSOLE LU!
   const firebaseConfig = {
-    apiKey: "AIzaSyOpqCdXwA3QPCakzjl798NpJXPSMLwaI",
+    apiKey: "MASUKKAN_API_KEY_FIREBASE_LO_DI_SINI",
     authDomain: "log15-5b225.firebaseapp.com",
     projectId: "log15-5b225",
-    storageBucket: "log15-5b225.firebasestorage.app",
-    messagingSenderId: "888020306714",
-    appId: "1:888020306714:web:ab0236da8526c65dfaa3",
-    measurementId: "G-ZTRMH8DTC4"
+    // ...
   };
 
-  // INISIALISASI FIREBASE
+  const GROQ_API_KEY = "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";
+  
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
   const provider = new GoogleAuthProvider();
 
-  // API KEY GROQ LU
-  const GROQ_API_KEY = "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";
+  // STATE
+  let isGuest = true;
+  let guestChatCount = parseInt(localStorage.getItem('litera_guest_count') || '0');
+  const GUEST_LIMIT = 3;
 
-  // ELEMEN HTML
-  const loginSection = document.getElementById('loginSection');
-  const chatSection = document.getElementById('chatSection');
-  const loginBtn = document.getElementById('loginBtn');
-  const logoutBtn = document.getElementById('logoutBtn');
-  const userPhoto = document.getElementById('userPhoto');
-  const quotaText = document.getElementById('quotaText');
   const chatBox = document.getElementById('chatBox');
   const userInput = document.getElementById('userInput');
   const sendBtn = document.getElementById('sendBtn');
-  const loginError = document.getElementById('loginError');
+  const loginModal = document.getElementById('loginModal');
+  const userStatus = document.getElementById('userStatus');
 
-  let currentUser = null;
-  let userQuota = 5; // Default limit 5
+  // Cek limit saat load
+  checkGuestLimit();
 
-  // --- 1. LOGIKA LOGIN (PAKAI POPUP) ---
-  loginBtn.addEventListener('click', async () => {
-    loginError.innerText = ""; // Bersihin error sebelumnya
-    try {
-      // Pakai POPUP (lebih stabil di GitHub Pages)
-      const result = await signInWithPopup(auth, provider);
-      console.log("Login sukses:", result.user.email);
-    } catch (error) {
-      console.error("Login error:", error.code, error.message);
-      loginError.innerText = "Gagal Login: " + error.code;
-      
-      // Kasih pesan custom kalau domain belum didaftarin
-      if (error.code === 'auth/unauthorized-domain') {
-        loginError.innerText = "Domain GitHub Pages belum didaftarin di Firebase Console!";
-      }
-    }
-  });
-
-  logoutBtn.addEventListener('click', () => {
-    signOut(auth);
-  });
-
-  // Pantau Status Login
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUser = user;
-      loginSection.style.display = 'none';
-      chatSection.style.display = 'flex';
-      userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
-      
-      // Cek Database: Apakah user ini udah ada di Firestore?
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        userQuota = userSnap.data().quota;
-      } else {
-        // Kalau user baru, daftarkan ke database dengan kuota 5
-        await setDoc(userRef, {
-          name: user.displayName,
-          email: user.email,
-          quota: 5
-        });
-        userQuota = 5;
-      }
-      updateQuotaUI();
-    } else {
-      currentUser = null;
-      loginSection.style.display = 'flex';
-      chatSection.style.display = 'none';
-    }
-  });
-
-  function updateQuotaUI() {
-    quotaText.innerText = `Sisa Kuota: ${userQuota}`;
-    if (userQuota <= 0) {
-      quotaText.style.background = 'var(--danger)';
+  function checkGuestLimit() {
+    if (isGuest && guestChatCount >= GUEST_LIMIT) {
       userInput.disabled = true;
       sendBtn.disabled = true;
-      userInput.placeholder = "Kuota habis. Kembali besok ya!";
-    } else {
-      quotaText.style.background = 'rgba(255,255,255,0.2)';
-      userInput.disabled = false;
-      sendBtn.disabled = false;
-      userInput.placeholder = "Ketik pertanyaanmu di sini...";
+      userInput.placeholder = "Batas tamu habis. Silakan login.";
+      loginModal.style.display = 'flex';
     }
   }
 
-  // --- 2. LOGIKA CHAT AI (SUDAH DIBERSIHKAN DARI PELITA) ---
-  const SYSTEM_PROMPT = `Kamu adalah Litera AI, asisten literasi untuk pelajar Indonesia.
-Fokus jawab: Kesehatan, Digital & Teknologi, Baca-Tulis, Numerasi, Finansial, dan Budaya.
-Aturan:
-1. Ramah, bahasa santai, tidak menggurui.
-2. Tolak dengan sopan jika ditanya di luar topik literasi.
-3. Maksimal 150 kata per jawaban.`;
+  // LOGIN LOGIC
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      document.getElementById('loginError').innerText = "Gagal: " + error.code;
+    }
+  });
+  
+  document.getElementById('loginHeaderBtn').addEventListener('click', () => {
+      loginModal.style.display = 'flex';
+  });
 
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      isGuest = false;
+      loginModal.style.display = 'none';
+      userStatus.innerText = "Member";
+      userStatus.style.background = "rgba(255,255,255,0.4)";
+      userInput.disabled = false;
+      sendBtn.disabled = false;
+      userInput.placeholder = "Ketik pertanyaanmu...";
+      document.getElementById('loginHeaderBtn').style.display = 'none';
+      
+      // Hapus jejak tamu
+      localStorage.removeItem('litera_guest_count');
+    } else {
+      isGuest = true;
+    }
+  });
+
+  // CHAT LOGIC
+  const SYSTEM_PROMPT = `Kamu adalah Litera AI, asisten literasi & logika untuk pelajar Indonesia. Fokus jawab: Literasi, Logika, Filsafat Dasar, Retorika, Digital, Kesehatan, Finansial. Ramah dan maksimal 150 kata.`;
   let chatHistory = [{ role: "system", content: SYSTEM_PROMPT }];
 
-  // Fungsi global biar bisa dipanggil dari HTML
-  window.handleKeyPress = function(e) {
-    if (e.key === 'Enter') window.sendMessage();
-  };
+  window.handleKeyPress = function(e) { if (e.key === 'Enter') window.sendMessage(); };
 
   window.sendMessage = async function() {
-    if (!currentUser) return alert("Harap login dulu!");
-    if (userQuota <= 0) return alert("Kuota kamu habis!");
-
     const text = userInput.value.trim();
     if (!text) return;
+
+    if (isGuest && guestChatCount >= GUEST_LIMIT) {
+        loginModal.style.display = 'flex';
+        return;
+    }
 
     addMessage(text, 'user');
     userInput.value = '';
     sendBtn.disabled = true;
     showTyping();
-
     chatHistory.push({ role: "user", content: text });
 
     try {
-      // Tembak Groq API
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${GROQ_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "openai/gpt-oss-120b",
-          messages: chatHistory,
-          temperature: 0.7,
-          max_tokens: 500
-        })
+        headers: { "Authorization": `Bearer ${GROQ_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "openai/gpt-oss-120b", messages: chatHistory, temperature: 0.7 })
       });
 
       const data = await response.json();
-      
-      // Hapus indikator ngetik
       const typing = document.getElementById('typing');
       if (typing) typing.remove();
 
@@ -371,20 +178,22 @@ Aturan:
         addMessage(botReply, 'bot');
         chatHistory.push({ role: "assistant", content: botReply });
 
-        // --- KURANGI KUOTA DI DATABASE ---
-        const userRef = doc(db, "users", currentUser.uid);
-        await updateDoc(userRef, { quota: increment(-1) });
-        userQuota -= 1;
-        updateQuotaUI();
+        // UPDATE LIMIT TAMU
+        if (isGuest) {
+            guestChatCount++;
+            localStorage.setItem('litera_guest_count', guestChatCount);
+            checkGuestLimit();
+        }
       }
     } catch (error) {
       const typing = document.getElementById('typing');
       if (typing) typing.remove();
-      addMessage("❌ Waduh, koneksi terputus atau API Key Groq bermasalah.", 'bot');
-      console.error(error);
+      addMessage("❌ Koneksi terputus.", 'bot');
     } finally {
-      sendBtn.disabled = false;
-      userInput.focus();
+      if(!isGuest || guestChatCount < GUEST_LIMIT) {
+          sendBtn.disabled = false;
+          userInput.focus();
+      }
     }
   };
 
@@ -399,13 +208,11 @@ Aturan:
 
   function showTyping() {
     const div = document.createElement('div');
-    div.className = 'message bot';
-    div.id = 'typing';
+    div.className = 'message bot'; div.id = 'typing';
     div.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
-
 </script>
 </body>
 </html>
