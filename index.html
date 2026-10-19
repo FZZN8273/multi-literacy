@@ -189,7 +189,7 @@
     
     <div class="chat-box" id="chatBox">
       <div class="message bot">
-        Halo! 👋 Aku <strong>Litera AI</strong>. Tanyain apa aja soal literasi: Kesehatan (PELITA), Digital, Finansial, Numerasi, atau Baca-Tulis!
+        Halo! 👋 Aku <strong>Litera AI</strong>. Tanyain apa aja soal literasi: Kesehatan, Digital, Finansial, Numerasi, atau Baca-Tulis!
       </div>
     </div>
 
@@ -202,15 +202,15 @@
 </div>
 
 <!-- ============================================== -->
-<!-- 1. SCRIPT FIREBASE (JALAN LANGSUNG DI BROWSER) -->
+<!-- SCRIPT FIREBASE & GROQ (VERSI REVISI FINAL) -->
 <!-- ============================================== -->
 <script type="module">
-  // IMPORT FIREBASE DARI CDN (NGGAK PERLU NPM INSTALL)
+  // IMPORT FIREBASE DARI CDN
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // KONFIGURASI FIREBASE LU (DARI SCREENSHOT)
+  // KONFIGURASI FIREBASE LU
   const firebaseConfig = {
     apiKey: "AIzaSyOpqCdXwA3QPCakzjl798NpJXPSMLwaI",
     authDomain: "log15-5b225.firebaseapp.com",
@@ -240,16 +240,27 @@
   const chatBox = document.getElementById('chatBox');
   const userInput = document.getElementById('userInput');
   const sendBtn = document.getElementById('sendBtn');
+  const loginError = document.getElementById('loginError');
 
   let currentUser = null;
   let userQuota = 5; // Default limit 5
 
-  // --- 1. LOGIKA LOGIN ---
-  loginBtn.addEventListener('click', () => {
-    // PAKAI INI (LEBIH STABIL DI GITHUB PAGES)
-signInWithRedirect(auth, provider).catch(err => {
-      document.getElementById('loginError').innerText = err.message;
-    });
+  // --- 1. LOGIKA LOGIN (PAKAI POPUP) ---
+  loginBtn.addEventListener('click', async () => {
+    loginError.innerText = ""; // Bersihin error sebelumnya
+    try {
+      // Pakai POPUP (lebih stabil di GitHub Pages)
+      const result = await signInWithPopup(auth, provider);
+      console.log("Login sukses:", result.user.email);
+    } catch (error) {
+      console.error("Login error:", error.code, error.message);
+      loginError.innerText = "Gagal Login: " + error.code;
+      
+      // Kasih pesan custom kalau domain belum didaftarin
+      if (error.code === 'auth/unauthorized-domain') {
+        loginError.innerText = "Domain GitHub Pages belum didaftarin di Firebase Console!";
+      }
+    }
   });
 
   logoutBtn.addEventListener('click', () => {
@@ -294,12 +305,17 @@ signInWithRedirect(auth, provider).catch(err => {
       userInput.disabled = true;
       sendBtn.disabled = true;
       userInput.placeholder = "Kuota habis. Kembali besok ya!";
+    } else {
+      quotaText.style.background = 'rgba(255,255,255,0.2)';
+      userInput.disabled = false;
+      sendBtn.disabled = false;
+      userInput.placeholder = "Ketik pertanyaanmu di sini...";
     }
   }
 
-  // --- 2. LOGIKA CHAT AI ---
+  // --- 2. LOGIKA CHAT AI (SUDAH DIBERSIHKAN DARI PELITA) ---
   const SYSTEM_PROMPT = `Kamu adalah Litera AI, asisten literasi untuk pelajar Indonesia.
-Fokus jawab: Kesehatan (termasuk game PELITA), Digital & Teknologi, Baca-Tulis, Numerasi, Finansial, dan Budaya.
+Fokus jawab: Kesehatan, Digital & Teknologi, Baca-Tulis, Numerasi, Finansial, dan Budaya.
 Aturan:
 1. Ramah, bahasa santai, tidak menggurui.
 2. Tolak dengan sopan jika ditanya di luar topik literasi.
@@ -307,29 +323,12 @@ Aturan:
 
   let chatHistory = [{ role: "system", content: SYSTEM_PROMPT }];
 
-  function handleKeyPress(e) {
-    if (e.key === 'Enter') sendMessage();
-  }
+  // Fungsi global biar bisa dipanggil dari HTML
+  window.handleKeyPress = function(e) {
+    if (e.key === 'Enter') window.sendMessage();
+  };
 
-  function addMessage(text, sender) {
-    const div = document.createElement('div');
-    div.className = `message ${sender}`;
-    if (sender === 'bot') div.innerHTML = marked.parse(text);
-    else div.textContent = text;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  function showTyping() {
-    const div = document.createElement('div');
-    div.className = 'message bot';
-    div.id = 'typing';
-    div.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  async function sendMessage() {
+  window.sendMessage = async function() {
     if (!currentUser) return alert("Harap login dulu!");
     if (userQuota <= 0) return alert("Kuota kamu habis!");
 
@@ -366,7 +365,7 @@ Aturan:
       if (typing) typing.remove();
 
       if (data.error) {
-        addMessage(`❌ Error: ${data.error.message}`, 'bot');
+        addMessage(`❌ Error API: ${data.error.message}`, 'bot');
       } else {
         const botReply = data.choices[0].message.content;
         addMessage(botReply, 'bot');
@@ -381,16 +380,31 @@ Aturan:
     } catch (error) {
       const typing = document.getElementById('typing');
       if (typing) typing.remove();
-      addMessage("❌ Waduh, koneksi terputus atau API Key Groq salah.", 'bot');
+      addMessage("❌ Waduh, koneksi terputus atau API Key Groq bermasalah.", 'bot');
+      console.error(error);
     } finally {
       sendBtn.disabled = false;
       userInput.focus();
     }
+  };
+
+  function addMessage(text, sender) {
+    const div = document.createElement('div');
+    div.className = `message ${sender}`;
+    if (sender === 'bot') div.innerHTML = marked.parse(text);
+    else div.textContent = text;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  // Bikin fungsi bisa dipanggil dari HTML
-  window.sendMessage = sendMessage;
-  window.handleKeyPress = handleKeyPress;
+  function showTyping() {
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    div.id = 'typing';
+    div.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
 
 </script>
 </body>
