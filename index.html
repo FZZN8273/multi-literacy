@@ -3,45 +3,94 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Litera AI - Asisten Literasi</title>
+<title>Litera AI - Platform Literasi</title>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   :root {
     --bg: oklch(97% 0.01 80);
-    --chat-bg: oklch(100% 0 0);
     --text: oklch(20% 0.02 80);
-    --primary: oklch(65% 0.15 70);
-    --primary-hover: oklch(60% 0.15 70);
-    --bubble-user: oklch(65% 0.15 70);
-    --bubble-bot: oklch(94% 0.02 70);
+    --primary: oklch(55% 0.15 155);
+    --primary-hover: oklch(50% 0.15 155);
+    --bubble-bot: oklch(93% 0.02 155);
+    --danger: oklch(60% 0.18 30);
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
   body {
     background-color: var(--bg);
+    color: var(--text);
+    height: 100vh;
     display: flex;
     justify-content: center;
-    height: 100vh;
-    padding: 16px;
+    align-items: center;
   }
-  .chat-container {
+
+  /* Container Utama */
+  .app-container {
     width: 100%;
-    max-width: 800px;
-    background: var(--chat-bg);
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    max-width: 900px;
+    height: 90vh;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    position: relative;
+  }
+
+  /* --- HALAMAN LOGIN --- */
+  #loginSection {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+  }
+  #loginSection h1 { font-size: 2rem; margin-bottom: 10px; color: var(--primary); }
+  #loginSection p { color: #666; margin-bottom: 30px; }
+  .btn-google {
+    background: white;
+    border: 2px solid #ddd;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+  .btn-google:hover { background: #f0f0f0; }
+
+  /* --- HALAMAN CHAT --- */
+  #chatSection {
+    display: none; /* Sembunyiin dulu, muncul kalau udah login */
+    flex-direction: column;
+    height: 100%;
   }
   .header {
     background: var(--primary);
     color: white;
     padding: 20px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .header h1 { font-size: 1.5rem; margin-bottom: 4px; }
-  .header p { font-size: 0.85rem; opacity: 0.9; }
+  .header h2 { font-size: 1.2rem; }
+  .user-info { display: flex; align-items: center; gap: 10px; font-size: 0.9rem;}
+  .user-info img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid white;}
   
+  .quota-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+  }
+
   .chat-box {
     flex: 1;
     padding: 20px;
@@ -53,17 +102,14 @@
   }
   .message {
     max-width: 80%;
-    padding: 12px 16px;
+    padding: 12px 18px;
     border-radius: 16px;
     font-size: 0.95rem;
     line-height: 1.5;
-    animation: fadeIn 0.3s ease;
   }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  
   .message.user {
     align-self: flex-end;
-    background: var(--bubble-user);
+    background: var(--primary);
     color: white;
     border-bottom-right-radius: 4px;
   }
@@ -76,11 +122,11 @@
   .message.bot p { margin-bottom: 8px; }
   .message.bot p:last-child { margin-bottom: 0; }
   .message.bot strong { font-weight: 600; }
-  
+
   .input-area {
     display: flex;
     padding: 16px;
-    background: var(--chat-bg);
+    background: white;
     border-top: 1px solid #eee;
     gap: 10px;
   }
@@ -91,10 +137,9 @@
     border-radius: 30px;
     font-size: 1rem;
     outline: none;
-    transition: border 0.3s;
   }
   input:focus { border-color: var(--primary); }
-  button {
+  button.send-btn {
     background: var(--primary);
     color: white;
     border: none;
@@ -102,12 +147,10 @@
     border-radius: 30px;
     font-weight: bold;
     cursor: pointer;
-    transition: background 0.3s;
   }
-  button:hover { background: var(--primary-hover); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* Loading Dots */
+  /* Loading */
   .typing-indicator { display: flex; gap: 4px; padding: 10px; }
   .typing-indicator span {
     width: 6px; height: 6px; background: #999; border-radius: 50%;
@@ -120,44 +163,148 @@
 </head>
 <body>
 
-<div class="chat-container">
-  <div class="header">
-    <h1>📚 Litera AI</h1>
-    <p>Asisten Literasi Cerdas (Kesehatan, Digital, Finansial, dll)</p>
-  </div>
+<div class="app-container">
   
-  <div class="chat-box" id="chatBox">
-    <div class="message bot">
-      Halo Boskuh! 👋 Aku <strong>Litera AI</strong>. Tanyain apa aja soal literasi: Kesehatan (PELITA), Digital, Finansial, Numerasi, atau Baca-Tulis! Mau mulai dari mana?
+  <!-- BAGIAN LOGIN -->
+  <div id="loginSection">
+    <h1>📚 Litera AI</h1>
+    <p>Asisten Literasi Cerdas untuk Pelajar Indonesia</p>
+    <button class="btn-google" id="loginBtn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+      Login dengan Google
+    </button>
+    <p id="loginError" style="color: red; margin-top: 10px; font-size: 0.8rem;"></p>
+  </div>
+
+  <!-- BAGIAN CHAT (Setelah Login) -->
+  <div id="chatSection">
+    <div class="header">
+      <h2>📚 Litera AI</h2>
+      <div class="user-info">
+        <span class="quota-badge" id="quotaText">Sisa Kuota: -</span>
+        <img id="userPhoto" src="" alt="User">
+        <button id="logoutBtn" style="background:transparent; border:none; color:white; cursor:pointer;">Keluar</button>
+      </div>
+    </div>
+    
+    <div class="chat-box" id="chatBox">
+      <div class="message bot">
+        Halo! 👋 Aku <strong>Litera AI</strong>. Tanyain apa aja soal literasi: Kesehatan (PELITA), Digital, Finansial, Numerasi, atau Baca-Tulis!
+      </div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Ketik pertanyaanmu di sini..." onkeypress="handleKeyPress(event)">
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">Kirim</button>
     </div>
   </div>
 
-  <div class="input-area">
-    <input type="text" id="userInput" placeholder="Ketik pertanyaanmu di sini..." onkeypress="handleKeyPress(event)">
-    <button id="sendBtn" onclick="sendMessage()">Kirim</button>
-  </div>
 </div>
 
-<script>
-  // ⚠️ GANTI DENGAN API KEY BARU KAMU
-  const API_KEY = "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"; 
-  
+<!-- ============================================== -->
+<!-- 1. SCRIPT FIREBASE (JALAN LANGSUNG DI BROWSER) -->
+<!-- ============================================== -->
+<script type="module">
+  // IMPORT FIREBASE DARI CDN (NGGAK PERLU NPM INSTALL)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // KONFIGURASI FIREBASE LU (DARI SCREENSHOT)
+  const firebaseConfig = {
+    apiKey: "AIzaSyOpqCdXwA3QPCakzjl798NpJXPSMLwaI",
+    authDomain: "log15-5b225.firebaseapp.com",
+    projectId: "log15-5b225",
+    storageBucket: "log15-5b225.firebasestorage.app",
+    messagingSenderId: "888020306714",
+    appId: "1:888020306714:web:ab0236da8526c65dfaa3",
+    measurementId: "G-ZTRMH8DTC4"
+  };
+
+  // INISIALISASI FIREBASE
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // API KEY GROQ LU
+  const GROQ_API_KEY = "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";
+
+  // ELEMEN HTML
+  const loginSection = document.getElementById('loginSection');
+  const chatSection = document.getElementById('chatSection');
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userPhoto = document.getElementById('userPhoto');
+  const quotaText = document.getElementById('quotaText');
   const chatBox = document.getElementById('chatBox');
   const userInput = document.getElementById('userInput');
   const sendBtn = document.getElementById('sendBtn');
 
-  // System Prompt (Kepribadian AI)
+  let currentUser = null;
+  let userQuota = 5; // Default limit 5
+
+  // --- 1. LOGIKA LOGIN ---
+  loginBtn.addEventListener('click', () => {
+    signInWithPopup(auth, provider).catch(err => {
+      document.getElementById('loginError').innerText = err.message;
+    });
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    signOut(auth);
+  });
+
+  // Pantau Status Login
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      currentUser = user;
+      loginSection.style.display = 'none';
+      chatSection.style.display = 'flex';
+      userPhoto.src = user.photoURL || 'https://via.placeholder.com/32';
+      
+      // Cek Database: Apakah user ini udah ada di Firestore?
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        userQuota = userSnap.data().quota;
+      } else {
+        // Kalau user baru, daftarkan ke database dengan kuota 5
+        await setDoc(userRef, {
+          name: user.displayName,
+          email: user.email,
+          quota: 5
+        });
+        userQuota = 5;
+      }
+      updateQuotaUI();
+    } else {
+      currentUser = null;
+      loginSection.style.display = 'flex';
+      chatSection.style.display = 'none';
+    }
+  });
+
+  function updateQuotaUI() {
+    quotaText.innerText = `Sisa Kuota: ${userQuota}`;
+    if (userQuota <= 0) {
+      quotaText.style.background = 'var(--danger)';
+      userInput.disabled = true;
+      sendBtn.disabled = true;
+      userInput.placeholder = "Kuota habis. Kembali besok ya!";
+    }
+  }
+
+  // --- 2. LOGIKA CHAT AI ---
   const SYSTEM_PROMPT = `Kamu adalah Litera AI, asisten literasi untuk pelajar Indonesia.
 Fokus jawab: Kesehatan (termasuk game PELITA), Digital & Teknologi, Baca-Tulis, Numerasi, Finansial, dan Budaya.
 Aturan:
 1. Ramah, bahasa santai, tidak menggurui.
 2. Tolak dengan sopan jika ditanya di luar topik literasi.
-3. Untuk topik darurat kesehatan, arahkan ke 119 ext 8.
-4. Maksimal 150 kata per jawaban. Gunakan format Markdown (bold, bullet) jika perlu.`;
+3. Maksimal 150 kata per jawaban.`;
 
-  let chatHistory = [
-    { role: "system", content: SYSTEM_PROMPT }
-  ];
+  let chatHistory = [{ role: "system", content: SYSTEM_PROMPT }];
 
   function handleKeyPress(e) {
     if (e.key === 'Enter') sendMessage();
@@ -166,14 +313,8 @@ Aturan:
   function addMessage(text, sender) {
     const div = document.createElement('div');
     div.className = `message ${sender}`;
-    
-    // Parse markdown untuk bot
-    if (sender === 'bot') {
-      div.innerHTML = marked.parse(text);
-    } else {
-      div.textContent = text;
-    }
-    
+    if (sender === 'bot') div.innerHTML = marked.parse(text);
+    else div.textContent = text;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
   }
@@ -187,29 +328,26 @@ Aturan:
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  function removeTyping() {
-    const typing = document.getElementById('typing');
-    if (typing) typing.remove();
-  }
-
   async function sendMessage() {
+    if (!currentUser) return alert("Harap login dulu!");
+    if (userQuota <= 0) return alert("Kuota kamu habis!");
+
     const text = userInput.value.trim();
     if (!text) return;
 
-    // Tampilkan pesan user
     addMessage(text, 'user');
     userInput.value = '';
     sendBtn.disabled = true;
     showTyping();
 
-    // Tambah ke history
     chatHistory.push({ role: "user", content: text });
 
     try {
+      // Tembak Groq API
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${API_KEY}`,
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -221,26 +359,38 @@ Aturan:
       });
 
       const data = await response.json();
-      removeTyping();
+      
+      // Hapus indikator ngetik
+      const typing = document.getElementById('typing');
+      if (typing) typing.remove();
 
       if (data.error) {
         addMessage(`❌ Error: ${data.error.message}`, 'bot');
       } else {
         const botReply = data.choices[0].message.content;
         addMessage(botReply, 'bot');
-        // Simpan balasan bot ke history
         chatHistory.push({ role: "assistant", content: botReply });
+
+        // --- KURANGI KUOTA DI DATABASE ---
+        const userRef = doc(db, "users", currentUser.uid);
+        await updateDoc(userRef, { quota: increment(-1) });
+        userQuota -= 1;
+        updateQuotaUI();
       }
     } catch (error) {
-      removeTyping();
-      addMessage("❌ Waduh, koneksi ke server AI terputus. Cek internet atau API Key kamu.", 'bot');
-      console.error(error);
+      const typing = document.getElementById('typing');
+      if (typing) typing.remove();
+      addMessage("❌ Waduh, koneksi terputus atau API Key Groq salah.", 'bot');
+    } finally {
+      sendBtn.disabled = false;
+      userInput.focus();
     }
-
-    sendBtn.disabled = false;
-    userInput.focus();
   }
-</script>
 
+  // Bikin fungsi bisa dipanggil dari HTML
+  window.sendMessage = sendMessage;
+  window.handleKeyPress = handleKeyPress;
+
+</script>
 </body>
 </html>
