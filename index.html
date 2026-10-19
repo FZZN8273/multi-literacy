@@ -246,7 +246,8 @@
 
   // --- 1. LOGIKA LOGIN ---
   loginBtn.addEventListener('click', () => {
-    signInWithPopup(auth, provider).catch(err => {
+    // PAKAI INI (LEBIH STABIL DI GITHUB PAGES)
+signInWithRedirect(auth, provider).catch(err => {
       document.getElementById('loginError').innerText = err.message;
     });
   });
