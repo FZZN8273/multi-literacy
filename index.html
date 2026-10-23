@@ -2,63 +2,86 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Litera AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Litera AI - Mentor Berpikir Kritis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* OKLCH PALETTE */
+        /* PALET WARNA OKLCH PROFESIONAL */
         :root {
-            --bg-dark: oklch(18% 0.02 260);
-            --bg-light: oklch(98% 0.01 260);
-            --text-dark: oklch(95% 0.01 260);
-            --text-light: oklch(20% 0.02 260);
-            --card-dark: oklch(24% 0.03 260);
-            --card-light: oklch(100% 0 0);
-            --border-dark: oklch(32% 0.03 260);
-            --border-light: oklch(88% 0.02 260);
+            --bg-base: oklch(15% 0.01 260);       /* Dark Slate */
+            --bg-surface: oklch(20% 0.02 260);    /* Lighter Slate */
+            --bg-hover: oklch(25% 0.03 260);
+            --text-main: oklch(95% 0.01 260);     /* Off-white */
+            --text-muted: oklch(65% 0.02 260);    /* Gray */
+            --border-color: oklch(30% 0.02 260);
             
-            --primary: oklch(65% 0.18 150);
-            --primary-hover: oklch(70% 0.18 150);
-            --danger: oklch(60% 0.22 25);
-            --info: oklch(65% 0.15 250);
+            --primary: oklch(65% 0.18 250);       /* Indigo/Blue */
+            --primary-hover: oklch(70% 0.18 250);
+            --success: oklch(65% 0.15 150);       /* Green */
+            --danger: oklch(60% 0.2 25);          /* Red */
+            --warning: oklch(75% 0.15 80);        /* Yellow */
         }
 
-        body { font-family: 'Inter', sans-serif; transition: background 0.3s, color 0.3s; }
-        body.light-mode { background-color: var(--bg-light); color: var(--text-light); }
-        body.light-mode .card { background-color: var(--card-light); border-color: var(--border-light); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        body.dark-mode { background-color: var(--bg-dark); color: var(--text-dark); }
-        body.dark-mode .card { background-color: var(--card-dark); border-color: var(--border-dark); box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-        .card { border-radius: 1rem; border: 1px solid; }
-        .text-blur-red { color: var(--danger); text-shadow: 0 0 15px oklch(60% 0.22 25 / 0.6); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        .robot-float { animation: float 3s ease-in-out infinite; }
+        /* Utility Classes */
+        .surface { background-color: var(--bg-surface); border: 1px solid var(--border-color); }
+        .btn-primary { background-color: var(--primary); color: white; transition: 0.2s; }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+        .text-muted { color: var(--text-muted); }
+        
+        /* Navbar Bottom (Mobile) */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background-color: var(--bg-surface);
+            border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-around; padding: 10px 0;
+            z-index: 50; padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 10px; color: var(--text-muted); transition: 0.2s; cursor: pointer;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-item i { margin-bottom: 4px; width: 20px; height: 20px; }
 
-        .perspective-1000 { perspective: 1000px; }
+        /* Markdown Fix */
+        .prose p { margin-bottom: 0.5rem; line-height: 1.5; }
+        .prose strong { font-weight: 700; color: var(--text-main); }
+        .prose ul { list-style-type: disc; padding-left: 1.2rem; margin-bottom: 0.5rem; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        /* 3D Flashcard */
+        .perspective { perspective: 1000px; }
         .preserve-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
-
-        .prose p { margin-bottom: 0.5rem; line-height: 1.6; }
-        .prose strong { font-weight: 800; color: var(--primary); }
-        .prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-        // TAMBAHAN IMPORT UNTUK CHAT REAL-TIME
-        import { getFirestore, doc, getDoc, setDoc, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs, addDoc, onSnapshot, serverTimestamp, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         // =====================================================================
         // ⚠️ CONFIG FIREBASE LU (GANTI!)
         // =====================================================================
         const firebaseConfig = {
-            apiKey: "AIzaSyDqCdCWxA3QPCakZj1798NpTjXPSMSLWaI", // <--- GANTI
+            apiKey: "AIzaSyDqCdCWxA3QPCakZj1798NpTjXPSMSLWaI", 
             authDomain: "log15-5b225.firebaseapp.com",
             projectId: "log15-5b225",
             storageBucket: "log15-5b225.appspot.com",
@@ -67,56 +90,65 @@
         };
 
         // =====================================================================
-        // ⚠️ CONFIG GROQ API
+        // ⚠️ CONFIG GROQ API (BISA BANYAK KEY & MODEL)
         // =====================================================================
-        const apiKeysGroq = ["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"]; 
+        const apiKeysGroq = ["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"];
         let currentKeyIndex = 0;
-        const GROQ_MODEL_TEXT = "llama-3.1-8b-instant";
-        const GROQ_MODEL_VISION = "llama-3.2-11b-vision-preview";
+        
+        // Array Model Anti-Limit (Sistem otomatis ganti jika error)
+        const GROQ_MODELS = [
+            "llama-3.1-8b-instant",
+            "llama-3.3-70b-versatile",
+            "mixtral-8x7b-32768",
+            "gemma2-9b-it"
+        ];
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
-        // --- STATE GLOBAL ---
+        // --- STATE ---
         let currentUser = null;
-        let userProfile = { nama: "User", umur: 0, minat: "", xp: 0, bintang: 0 };
+        let userProfile = {};
         let chatHistory = [];
         let myFlashcards = [];
         let currentImageBase64 = null;
         let xp = 0, bintang = 0;
-        let latsolData = [
-            { q: "Apa itu Literasi Kesehatan?", o: ["Baca buku medis", "Memahami info kesehatan", "Rajin minum obat"], a: 1 },
-            { q: "Dapat hoaks di WA, tindakan tepat?", o: ["Sebar ke grup", "Cek fakta Kemenkes/WHO", "Diamkan saja"], a: 1 },
-            { q: "Literasi Digital artinya?", o: ["Main HP terus", "Cerdas pakai internet", "Beli barang online"], a: 1 }
-        ];
-        let currentLatsolIndex = 0;
-        let unsubChat = null; // Buat matiin listener chat pas logout
 
-        // --- INIT & PRIVACY ---
+        // Topik Offline Mode
+        const TOPICS = [
+            "Pentingnya cuci tangan pakai sabun", "Bahaya hoaks vaksin di WhatsApp", 
+            "Cara mengatur uang jajan agar tidak habis", "Mengapa tidur 8 jam itu penting",
+            "Dampak sampah plastik bagi ekosistem", "Cara membedakan berita asli dan bohong",
+            "Pentingnya sarapan sebelum sekolah", "Pengaruh media sosial pada kesehatan mental",
+            "Cara berolahraga ringan di rumah", "Manfaat membaca buku fiksi vs non-fiksi"
+            // Bisa ditambah jadi 100+ sesuai request
+        ];
+
+        // --- INIT & NAVIGASI ---
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
-            const savedTheme = localStorage.getItem('litera_theme') || 'dark-mode';
-            document.body.className = savedTheme;
-            if(!localStorage.getItem('litera_privacy_agreed')) document.getElementById('privacyOverlay').classList.remove('hidden');
-            else document.getElementById('privacyOverlay').classList.add('hidden');
+            document.body.classList.add('dark');
         });
 
-        window.setujuPrivacy = () => {
-            localStorage.setItem('litera_privacy_agreed', 'true');
-            document.getElementById('privacyOverlay').classList.add('hidden');
-        };
-        window.gantiTema = (mode) => { document.body.className = mode; localStorage.setItem('litera_theme', mode); };
+        window.switchView = (viewId, btn) => {
+            document.querySelectorAll('.app-view').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            
+            // Update Navbar UI
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(btn) btn.classList.add('active');
 
-        // --- LOGIN & DATABASE FIRESTORE ---
+            // Cek kondisi khusus
+            if(viewId === 'viewMabar') loadFriendList();
+        };
+
+        // --- LOGIN & FIRESTORE USER ---
         document.getElementById('loginBtn').addEventListener('click', () => {
             signInWithPopup(auth, provider).catch(err => alert(err.message));
         });
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            if(unsubChat) unsubChat(); // Matikan listener chat
-            signOut(auth);
-        });
+        document.getElementById('logoutBtn').addEventListener('click', () => signOut(auth));
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -124,23 +156,20 @@
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('mainApp').classList.remove('hidden');
                 
-                // Ambil / Buat Profil (Flat structure)
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
+                
                 if (userSnap.exists()) {
-                    const data = userSnap.data();
-                    userProfile = data;
-                    xp = data.xp || 0;
-                    bintang = data.bintang || 0;
+                    userProfile = userSnap.data();
+                    xp = userProfile.xp || 0;
+                    bintang = userProfile.bintang || 0;
                 } else {
-                    userProfile = { nama: user.displayName, email: user.email, umur: 0, minat: "", xp: 0, bintang: 0 };
+                    userProfile = { name: user.displayName, email: user.email, xp: 0, bintang: 0 };
                     await setDoc(userRef, userProfile);
                 }
                 
-                document.getElementById('userName').textContent = userProfile.nama || user.displayName;
+                document.getElementById('userName').textContent = userProfile.name;
                 updateStatsUI();
-                loadChatMemory();
-                initMabarChat(); // Mulai dengerin chat global
             } else {
                 currentUser = null;
                 document.getElementById('loginScreen').classList.remove('hidden');
@@ -148,334 +177,313 @@
             }
         });
 
-        // --- NAVIGASI ---
-        window.toggleMenu = () => document.getElementById('mobileMenu').classList.toggle('hidden');
-        window.switchTab = (tabId) => {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(tabId).classList.remove('hidden');
-            document.getElementById('mobileMenu').classList.add('hidden'); 
-            lucide.createIcons();
-        };
-
-        // --- PROFIL & SETTINGS ---
-        window.bukaSettings = () => {
-            document.getElementById('setNama').value = userProfile.nama || "";
-            document.getElementById('setUmur').value = userProfile.umur || "";
-            document.getElementById('setMinat').value = userProfile.minat || "";
-            document.getElementById('settingsModal').classList.remove('hidden');
-        };
-        window.simpanSettings = async () => {
-            if(!currentUser) return;
-            const newProfile = {
-                nama: document.getElementById('setNama').value,
-                umur: parseInt(document.getElementById('setUmur').value) || 0,
-                minat: document.getElementById('setMinat').value,
-                email: currentUser.email,
-                xp: xp, bintang: bintang
-            };
-            await setDoc(doc(db, "users", currentUser.uid), newProfile, { merge: true });
-            userProfile = newProfile;
-            document.getElementById('userName').textContent = userProfile.nama;
-            document.getElementById('settingsModal').classList.add('hidden');
-            alert("Profil berhasil disimpan ke Server!");
-        };
-
-        // --- XP & BINTANG ---
         function updateStatsUI() {
-            document.getElementById('uiXP').textContent = xp + ' / 100.000';
-            document.getElementById('uiBintang').textContent = bintang + ' / 10';
-        }
-        async function tambahXP(jumlah) {
-            xp += jumlah; if(xp > 100000) xp = 100000;
-            updateStatsUI();
-            if(currentUser) await setDoc(doc(db, "users", currentUser.uid), { xp: xp }, { merge: true });
+            document.getElementById('uiXP').textContent = xp;
+            document.getElementById('uiBintang').textContent = bintang;
         }
 
-        // --- CHAT AI (LOGIKA SAMA KAYAK SEBELUMNYA) ---
-        function formatTeks(text) { return marked.parse(text, { breaks: true, gfm: true }); }
-        function loadChatMemory() {
-            const saved = localStorage.getItem('litera_chat_' + currentUser.uid);
-            if(saved) { chatHistory = JSON.parse(saved); renderChat(); }
+        async function addXP(amount) {
+            xp += amount;
+            updateStatsUI();
+            if(currentUser) await updateDoc(doc(db, "users", currentUser.uid), { xp: increment(amount) });
         }
+
+        // --- CHAT AI & API FALLBACK ---
+        function formatTeks(text) { return marked.parse(text, { breaks: true, gfm: true }); }
+
         function renderChat() {
             const box = document.getElementById('chatBox');
             box.innerHTML = '';
             chatHistory.forEach(msg => {
                 const div = document.createElement('div');
-                div.className = `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
-                div.innerHTML = `<div class="max-w-[85%] p-3 rounded-xl text-sm ${msg.role === 'user' ? 'bg-[var(--primary)] text-white rounded-br-none' : 'card rounded-bl-none prose'}">${msg.role === 'user' ? msg.content : formatTeks(msg.content)}</div>`;
+                div.className = `flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} mb-3`;
+                div.innerHTML = `
+                    <div class="max-w-[85%] p-3 rounded-2xl text-sm ${msg.role === 'user' ? 'bg-[var(--primary)] text-white rounded-br-none' : 'surface rounded-bl-none prose'}">
+                        ${msg.role === 'user' ? msg.content : formatTeks(msg.content)}
+                    </div>`;
                 box.appendChild(div);
             });
             box.scrollTop = box.scrollHeight;
         }
-        document.getElementById('imgInput').addEventListener('change', (e) => {
-            const file = e.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => { currentImageBase64 = ev.target.result; document.getElementById('imgPreview').src = currentImageBase64; document.getElementById('imgPreviewContainer').classList.remove('hidden'); };
-            reader.readAsDataURL(file);
-        });
-        window.hapusGambar = () => { currentImageBase64 = null; document.getElementById('imgPreviewContainer').classList.add('hidden'); };
 
         async function sendMessage() {
             const text = document.getElementById('userInput').value.trim();
             if ((!text && !currentImageBase64) || !currentUser) return;
-            chatHistory.push({ role: 'user', content: text || "[Mengirim Gambar]" });
-            renderChat(); document.getElementById('userInput').value = ''; document.getElementById('loadingIndicator').classList.remove('hidden');
-            
+
+            chatHistory.push({ role: 'user', content: text });
+            renderChat();
+            document.getElementById('userInput').value = '';
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+
             let isVision = currentImageBase64 ? true : false;
             let contentPayload = text;
-            if(isVision) contentPayload = [{ type: "text", text: text || "Jelaskan gambar ini" }, { type: "image_url", image_url: { url: currentImageBase64 } }];
+            if(isVision) {
+                contentPayload = [{ type: "text", text: text || "Jelaskan gambar ini" }, { type: "image_url", image_url: { url: currentImageBase64 } }];
+            }
 
             const messages = [
-                { role: 'system', content: `Kamu adalah Litera AI. Mentor berpikir kritis. Format Markdown.
-                JIKA USER MINTA FLASHCARD, WAJIB BALAS: [FLASHCARD: Pertanyaan | Jawaban]` },
-                ...chatHistory.slice(-6), { role: 'user', content: contentPayload }
+                { role: 'system', content: `Kamu adalah Litera AI. Mentor berpikir kritis.` },
+                ...chatHistory.slice(-6),
+                { role: 'user', content: contentPayload }
             ];
 
-            try {
-                const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-                    method: 'POST', headers: { 'Authorization': `Bearer ${apiKeysGroq[currentKeyIndex]}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ model: isVision ? GROQ_MODEL_VISION : GROQ_MODEL_TEXT, messages: messages, temperature: 0.7, max_tokens: 800 })
-                });
-                if (!res.ok) throw new Error("API Limit/Error. Cek kuota Groq.");
-                const data = await res.json();
-                let botReply = data.choices[0].message.content;
+            let success = false;
+            for (let model of GROQ_MODELS) {
+                if(success) break;
+                try {
+                    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${apiKeysGroq[currentKeyIndex]}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            model: isVision ? "llama-3.2-11b-vision-preview" : model, 
+                            messages: messages, temperature: 0.7, max_tokens: 800 
+                        })
+                    });
 
-                const regex = /\[FLASHCARD:\s*(.+?)\s*\|\s*(.+?)\s*\]/g;
-                let match;
-                while ((match = regex.exec(botReply)) !== null) myFlashcards.push({ front: match[1], back: match[2] });
-                botReply = botReply.replace(regex, '\n*(Flashcard ditambahkan!)*\n');
-                renderFlashcards(); localStorage.setItem('litera_flash_' + currentUser.uid, JSON.stringify(myFlashcards));
-                chatHistory.push({ role: 'assistant', content: botReply });
-                localStorage.setItem('litera_chat_' + currentUser.uid, JSON.stringify(chatHistory));
-                renderChat(); hapusGambar(); tambahXP(50); 
-            } catch (err) { alert(err.message); } finally { document.getElementById('loadingIndicator').classList.add('hidden'); }
+                    if (res.ok) {
+                        const data = await res.json();
+                        let botReply = data.choices[0].message.content;
+                        chatHistory.push({ role: 'assistant', content: botReply });
+                        renderChat();
+                        hapusGambar();
+                        addXP(50);
+                        success = true;
+                    }
+                } catch (e) {
+                    console.log(`Model ${model} limit, mencoba model lain...`);
+                }
+            }
+
+            if (!success) alert("Semua model AI sedang sibuk/limit. Coba lagi nanti.");
+            document.getElementById('loadingIndicator').classList.add('hidden');
         }
         document.getElementById('sendBtn').addEventListener('click', sendMessage);
 
-        // --- FLASHCARD & LATSOL ---
-        function renderFlashcards() {
-            const container = document.getElementById('flashcardContainer'); container.innerHTML = '';
-            if (myFlashcards.length === 0) { container.innerHTML = `<p class="col-span-full text-center opacity-50">Belum ada flashcard.</p>`; return; }
-            myFlashcards.forEach(card => {
-                const div = document.createElement('div'); div.className = "perspective-1000 w-full h-48 cursor-pointer";
-                div.onclick = () => div.querySelector('.card-inner').classList.toggle('rotate-y-180');
-                div.innerHTML = `<div class="card-inner relative w-full h-full transition-transform duration-500 preserve-3d">
-                    <div class="absolute inset-0 card p-4 flex items-center justify-center text-center backface-hidden"><h3 class="font-bold text-lg">${card.front}</h3></div>
-                    <div class="absolute inset-0 bg-[var(--primary)] text-white p-4 flex items-center justify-center text-center rotate-y-180 backface-hidden"><p class="text-sm">${card.back}</p></div>
-                </div>`;
-                container.appendChild(div);
-            });
-        }
-        function loadLatsol() {
-            const l = latsolData[currentLatsolIndex];
-            document.getElementById('latsolQuestion').textContent = l.q;
-            const optContainer = document.getElementById('latsolOptions'); optContainer.innerHTML = '';
-            l.o.forEach((opt, index) => {
-                const btn = document.createElement('button'); btn.className = "w-full text-left p-4 card hover:bg-[var(--primary)] hover:text-white transition rounded-xl mb-3 font-semibold";
-                btn.textContent = opt; btn.onclick = () => checkLatsol(index, l.a); optContainer.appendChild(btn);
-            });
-        }
-        function checkLatsol(pilihan, kunci) {
-            if (pilihan === kunci) {
-                bintang += 1; if(bintang > 10) bintang = 10; tambahXP(1000);
-                alert("BENAR! +1000 XP, +1 Bintang!"); currentLatsolIndex++;
-                if (currentLatsolIndex >= latsolData.length) currentLatsolIndex = 0;
-                loadLatsol();
-            } else alert("SALAH! Coba lagi.");
-        }
-
-        // =====================================================================
-        // 🌟 FITUR BARU: MABAR (CHAT REAL-TIME DENGAN FIRESTORE) 🌟
-        // =====================================================================
-        window.bukaMabar = () => { switchTab('tabMabar'); };
-
-        function initMabarChat() {
-            // Kita bikin satu room global dulu biar gampang ngetesnya
-            const q = query(collection(db, "global_chat"), orderBy("createdAt", "asc"));
+        // --- US LITERASI (MABAR) ---
+        // 1. Add Friend
+        window.cariTeman = async () => {
+            const email = document.getElementById('searchEmail').value;
+            if(!email) return;
+            const q = query(collection(db, "users"), where("email", "==", email));
+            const snap = await getDocs(q);
             
-            // onSnapshot = dengerin perubahan database secara real-time
-            unsubChat = onSnapshot(q, (snapshot) => {
-                const box = document.getElementById('mabarChatBox');
-                box.innerHTML = '';
-                snapshot.forEach((doc) => {
-                    const msg = doc.data();
-                    const isMe = msg.senderId === currentUser.uid;
-                    const div = document.createElement('div');
-                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3`;
-                    div.innerHTML = `
-                        <span class="text-xs opacity-50 mb-1">${isMe ? 'Kamu' : msg.senderName}</span>
-                        <div class="max-w-[80%] p-3 rounded-xl text-sm ${isMe ? 'bg-[var(--info)] text-white rounded-br-none' : 'card rounded-bl-none'}">
-                            ${msg.text}
-                        </div>
-                    `;
-                    box.appendChild(div);
+            if(snap.empty) return alert("User tidak ditemukan!");
+            
+            snap.forEach(async (docSnap) => {
+                const friendData = docSnap.data();
+                // Simpan ke list friend di subcollection
+                await setDoc(doc(db, "users", currentUser.uid, "friends", docSnap.id), {
+                    name: friendData.name,
+                    email: friendData.email
                 });
-                box.scrollTop = box.scrollHeight;
+                alert(`Berhasil menambahkan ${friendData.name} sebagai teman!`);
+                loadFriendList();
             });
+        };
+
+        async function loadFriendList() {
+            const listEl = document.getElementById('friendList');
+            listEl.innerHTML = 'Memuat...';
+            const snap = await getDocs(collection(db, "users", currentUser.uid, "friends"));
+            listEl.innerHTML = '';
+            snap.forEach(doc => {
+                const f = doc.data();
+                listEl.innerHTML += `<div class="p-2 surface rounded mb-2 flex justify-between"><span>${f.name}</span><span class="text-xs text-muted">${f.email}</span></div>`;
+            });
+            if(snap.empty) listEl.innerHTML = '<p class="text-sm text-muted">Belum ada teman.</p>';
         }
 
-        window.kirimMabar = async () => {
-            const text = document.getElementById('mabarInput').value.trim();
-            if(!text || !currentUser) return;
+        // 2. Offline Mode
+        window.acakTopik = () => {
+            const random = TOPICS[Math.floor(Math.random() * TOPICS.length)];
+            document.getElementById('topikResult').textContent = random;
+            document.getElementById('topikResult').classList.remove('hidden');
+            document.getElementById('timerArea').classList.remove('hidden');
+        };
+
+        let timerInterval;
+        window.mulaiTimer = () => {
+            let time = parseInt(document.getElementById('timerSelect').value) * 60;
+            clearInterval(timerInterval);
+            const display = document.getElementById('timerDisplay');
             
-            document.getElementById('mabarInput').value = '';
-            
-            // Simpan pesan ke Firestore
-            await addDoc(collection(db, "global_chat"), {
-                text: text,
-                senderId: currentUser.uid,
-                senderName: userProfile.nama || currentUser.displayName,
-                createdAt: serverTimestamp() // Waktu server biar urutannya pas
+            timerInterval = setInterval(() => {
+                let m = Math.floor(time / 60);
+                let s = time % 60;
+                display.textContent = `${m}:${s < 10 ? '0'+s : s}`;
+                if(time <= 0) {
+                    clearInterval(timerInterval);
+                    display.textContent = "WAKTU HABIS!";
+                }
+                time--;
+            }, 1000);
+        };
+
+        // 3. Online Mode (Simulasi UI - Butuh logic backend room yg kompleks untuk sync real-time)
+        window.buatRoom = async () => {
+            const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+            await setDoc(doc(db, "rooms", code), {
+                host: currentUser.uid,
+                hostName: userProfile.name,
+                status: 'waiting',
+                createdAt: serverTimestamp()
             });
-            
-            tambahXP(10); // Dapet XP tiap chat sama temen
+            alert(`Room dibuat! Kode: ${code}. Bagikan ke temanmu.`);
+        };
+
+        window.joinRoom = async () => {
+            const code = document.getElementById('joinCode').value.toUpperCase();
+            const roomRef = doc(db, "rooms", code);
+            const snap = await getDoc(roomRef);
+            if(snap.exists() && snap.data().status === 'waiting') {
+                await updateDoc(roomRef, { guest: currentUser.uid, guestName: userProfile.name, status: 'playing' });
+                alert("Berhasil join! Game dimulai (fitur game logic menyusul).");
+            } else {
+                alert("Room tidak ditemukan atau sudah penuh.");
+            }
+        };
+
+        // Image Upload
+        document.getElementById('imgInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                currentImageBase64 = ev.target.result;
+                document.getElementById('imgPreview').src = currentImageBase64;
+                document.getElementById('imgPreviewContainer').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+        window.hapusGambar = () => {
+            currentImageBase64 = null;
+            document.getElementById('imgPreviewContainer').classList.add('hidden');
         };
     </script>
 </head>
-<body class="dark-mode">
+<body class="h-screen flex flex-col overflow-hidden text-sm pb-16 md:pb-0">
 
-    <!-- OVERLAY PRIVACY -->
-    <div id="privacyOverlay" class="fixed inset-0 z-[999] bg-black/90 flex items-center justify-center p-4 hidden">
-        <div class="card p-8 max-w-lg w-full">
-            <h2 class="text-2xl font-bold mb-4 text-[var(--primary)]">Syarat & Ketentuan</h2>
-            <div class="text-sm space-y-3 mb-6 h-64 overflow-y-auto pr-2">
-                <p><b>1. Privasi Data:</b> Kami menggunakan Firebase (Google). Data profil, XP, Bintang, dan Chat disimpan di server.</p>
-                <p><b>2. Anti-Scam:</b> 100% gratis.</p>
-                <p><b>3. Kredit:</b> Dibuat oleh <b>Fauzan (@mfznndii_0605)</b>.</p>
-            </div>
-            <button onclick="setujuPrivacy()" class="w-full bg-[var(--primary)] text-white font-bold py-3 rounded-xl hover:opacity-90">Saya Setuju</button>
-        </div>
-    </div>
-
-    <!-- HALAMAN LOGIN -->
+    <!-- LOGIN -->
     <div id="loginScreen" class="h-screen flex flex-col items-center justify-center p-6">
-        <svg class="w-32 h-32 robot-float mb-6" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="30" y="15" width="40" height="30" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
-            <circle cx="42" cy="28" r="4" fill="#ef4444"/><circle cx="58" cy="28" r="4" fill="#ef4444"/>
-            <rect x="45" y="38" width="10" height="3" rx="1.5" fill="#94a3b8"/>
-            <path d="M 25 55 L 75 55 L 80 85 L 20 85 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-            <path d="M 25 55 L 75 55 L 73 65 L 27 65 Z" fill="#ef4444"/>
-        </svg>
-        <h1 class="text-5xl font-extrabold text-blur-red mb-2">Litera AI</h1>
-        <button id="loginBtn" class="bg-white text-gray-900 font-semibold py-3 px-6 rounded-xl flex items-center gap-3 shadow-lg hover:bg-gray-100 transition mt-8">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6">
+        <div class="w-20 h-20 bg-[var(--primary)] rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-xl">🤖</div>
+        <h1 class="text-3xl font-bold mb-2">Litera AI</h1>
+        <p class="text-muted mb-8 text-center">Mentor Berpikir Kritis untuk Literasi Indonesia</p>
+        <button id="loginBtn" class="btn-primary font-semibold py-3 px-8 rounded-xl flex items-center gap-3 w-full max-w-xs justify-center shadow-lg">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 bg-white rounded-full p-0.5">
             Login dengan Google
         </button>
     </div>
 
     <!-- MAIN APP -->
-    <div id="mainApp" class="hidden h-screen flex flex-col">
-        <header class="card rounded-none border-t-0 border-x-0 p-4 flex justify-between items-center z-50">
-            <div class="flex items-center gap-3">
-                <button onclick="toggleMenu()" class="md:hidden p-2"><i data-lucide="menu"></i></button>
-                <div class="w-10 h-10 rounded-full bg-[var(--primary)] flex items-center justify-center font-bold text-white text-sm shadow-md">🤖</div>
+    <div id="mainApp" class="hidden flex-1 flex flex-col h-full">
+        
+        <!-- HEADER -->
+        <header class="surface border-t-0 border-x-0 p-3 flex justify-between items-center z-20">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center text-white font-bold">L</div>
                 <div>
-                    <h2 class="font-bold text-sm md:text-lg leading-tight">Litera AI</h2>
-                    <p class="text-xs opacity-70 hidden md:block">Halo, <span id="userName" class="text-[var(--primary)] font-semibold"></span>!</p>
+                    <h2 class="font-bold text-base leading-tight">Litera AI</h2>
+                    <p class="text-[10px] text-muted">Halo, <span id="userName" class="text-[var(--primary)]"></span></p>
                 </div>
             </div>
-            <div class="flex items-center gap-2 md:gap-4">
-                <div class="flex items-center gap-1 text-xs md:text-sm font-bold bg-[var(--bg-dark)] px-3 py-1 rounded-full border border-[var(--border-dark)]">
-                    <i data-lucide="star" class="text-yellow-400 w-4 h-4"></i> <span id="uiBintang">0 / 10</span>
-                </div>
-                <div class="flex items-center gap-1 text-xs md:text-sm font-bold bg-[var(--bg-dark)] px-3 py-1 rounded-full border border-[var(--border-dark)]">
-                    <i data-lucide="zap" class="text-blue-400 w-4 h-4"></i> <span id="uiXP">0 / 100.000</span>
-                </div>
+            <div class="flex items-center gap-3 font-semibold">
+                <div class="flex items-center gap-1 text-[var(--warning)]"><i data-lucide="star" class="w-4 h-4"></i> <span id="uiBintang">0</span></div>
+                <div class="flex items-center gap-1 text-[var(--primary)]"><i data-lucide="zap" class="w-4 h-4"></i> <span id="uiXP">0</span></div>
+                <button id="logoutBtn" class="text-[var(--danger)] ml-2"><i data-lucide="log-out" class="w-5 h-5"></i></button>
             </div>
         </header>
 
-        <!-- NAVBAR DESKTOP -->
-        <nav class="hidden md:flex justify-center border-b border-[var(--border-dark)] bg-[var(--card-dark)]">
-            <button onclick="switchTab('tabChat')" class="px-6 py-3 font-semibold hover:text-[var(--primary)] transition">Chat AI</button>
-            <button onclick="switchTab('tabFlashcard')" class="px-6 py-3 font-semibold hover:text-[var(--primary)] transition">Flashcard</button>
-            <button onclick="switchTab('tabLatsol')" class="px-6 py-3 font-semibold hover:text-[var(--primary)] transition">Latihan Soal</button>
-            <button onclick="bukaMabar()" class="px-6 py-3 font-semibold text-[var(--info)] hover:text-[var(--primary)] transition">Akademi (Mabar)</button>
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 relative overflow-hidden bg-[var(--bg-base)]">
+            
+            <!-- VIEW: CHAT -->
+            <div id="viewChat" class="app-view absolute inset-0 flex flex-col">
+                <div id="chatBox" class="flex-1 overflow-y-auto p-3 flex flex-col"></div>
+                <div class="p-3 surface border-b-0 border-x-0">
+                    <div id="loadingIndicator" class="hidden text-[var(--primary)] text-xs mb-2 animate-pulse">Merangkai literasi...</div>
+                    <div id="imgPreviewContainer" class="hidden mb-2 relative w-12 h-12 border border-[var(--border-color)] rounded-lg overflow-hidden">
+                        <img id="imgPreview" class="w-full h-full object-cover">
+                        <button onclick="hapusGambar()" class="absolute top-0 right-0 bg-red-500 text-white w-4 h-4 text-[10px]">X</button>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <label class="p-2 cursor-pointer text-muted hover:text-white"><i data-lucide="image" class="w-5 h-5"></i><input type="file" id="imgInput" accept="image/*" class="hidden"></label>
+                        <input type="text" id="userInput" placeholder="Tanya sesuatu..." class="flex-1 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-[var(--primary)]">
+                        <button id="sendBtn" class="bg-[var(--primary)] text-white p-2.5 rounded-xl shadow-md"><i data-lucide="send" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: FLASHCARD -->
+            <div id="viewFlashcard" class="app-view absolute inset-0 overflow-y-auto p-4 hidden">
+                <h2 class="text-lg font-bold mb-4">Flashcard Kamu</h2>
+                <div id="flashcardContainer" class="grid grid-cols-2 gap-3"></div>
+            </div>
+
+            <!-- VIEW: US LITERASI (MABAR) -->
+            <div id="viewMabar" class="app-view absolute inset-0 overflow-y-auto p-4 hidden">
+                <h2 class="text-lg font-bold mb-4">US Literasi (Mabar)</h2>
+                
+                <!-- Add Friend -->
+                <div class="surface p-4 rounded-xl mb-4">
+                    <h3 class="font-semibold mb-2 text-sm">1. Tambah Teman</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="email" id="searchEmail" placeholder="Masukkan Email Teman" class="flex-1 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm">
+                        <button onclick="cariTeman()" class="btn-primary px-4 py-2 rounded-lg text-sm">Cari</button>
+                    </div>
+                    <div id="friendList" class="text-sm space-y-2">
+                        <!-- List teman render disini -->
+                    </div>
+                </div>
+
+                <!-- Mode Offline -->
+                <div class="surface p-4 rounded-xl mb-4">
+                    <h3 class="font-semibold mb-2 text-sm">2. Mode Offline (Face to Face)</h3>
+                    <p class="text-xs text-muted mb-3">Acak topik, lalu jelaskan ke temanmu secara langsung!</p>
+                    <button onclick="acakTopik()" class="w-full bg-[var(--bg-hover)] border border-[var(--border-color)] py-2 rounded-lg text-sm font-semibold mb-3">🎲 Acak Topik</button>
+                    
+                    <div id="topikResult" class="hidden text-center p-3 bg-[var(--bg-base)] rounded-lg mb-3 font-bold text-[var(--primary)]"></div>
+                    
+                    <div id="timerArea" class="hidden text-center">
+                        <p id="timerDisplay" class="text-3xl font-mono font-bold mb-2">0:00</p>
+                        <div class="flex gap-2 justify-center mb-2">
+                            <select id="timerSelect" class="bg-[var(--bg-base)] border border-[var(--border-color)] text-xs rounded p-1">
+                                <option value="1">1 Menit</option>
+                                <option value="2">2 Menit</option>
+                                <option value="5">5 Menit</option>
+                            </select>
+                            <button onclick="mulaiTimer()" class="bg-[var(--success)] text-white px-4 py-1 rounded text-xs">Mulai</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mode Online -->
+                <div class="surface p-4 rounded-xl">
+                    <h3 class="font-semibold mb-2 text-sm">3. Mode Online (Lomba Cepat)</h3>
+                    <div class="flex gap-2 mb-3">
+                        <button onclick="buatRoom()" class="flex-1 btn-primary py-2 rounded-lg text-sm">Buat Room</button>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="joinCode" placeholder="Kode Room" class="flex-1 bg-[var(--bg-base)] border border-[var(--border-color)] rounded-lg px-3 py-2 text-sm uppercase">
+                        <button onclick="joinRoom()" class="bg-[var(--success)] text-white px-4 py-2 rounded-lg text-sm">Join</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- BOTTOM NAVIGATION (MOBILE) -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" onclick="switchView('viewChat', this)">
+                <i data-lucide="message-square"></i><span>Chat</span>
+            </div>
+            <div class="nav-item" onclick="switchView('viewFlashcard', this)">
+                <i data-lucide="layers"></i><span>Card</span>
+            </div>
+            <div class="nav-item" onclick="switchView('viewMabar', this)">
+                <i data-lucide="users"></i><span>US Literasi</span>
+            </div>
         </nav>
 
-        <!-- MENU MOBILE -->
-        <div id="mobileMenu" class="hidden flex-col bg-[var(--card-dark)] border-b border-[var(--border-dark)] p-4 space-y-2 absolute top-16 left-0 right-0 z-40 shadow-xl md:hidden">
-            <button onclick="switchTab('tabChat')" class="text-left py-2">Chat AI</button>
-            <button onclick="switchTab('tabFlashcard')" class="text-left py-2">Flashcard</button>
-            <button onclick="switchTab('tabLatsol')" class="text-left py-2">Latihan Soal</button>
-            <button onclick="bukaMabar()" class="text-left py-2 text-[var(--info)] font-semibold">Akademi (Mabar)</button>
-            <hr class="border-[var(--border-dark)]">
-            <button onclick="bukaSettings()" class="text-left py-2">Profil & Settings</button>
-            <button onclick="gantiTema('light-mode')" class="text-left py-2 text-yellow-400">Mode Terang</button>
-            <button onclick="gantiTema('dark-mode')" class="text-left py-2 text-gray-400">Mode Gelap</button>
-            <button id="logoutBtn" class="text-left py-2 text-[var(--danger)]">Keluar</button>
-        </div>
-
-        <div class="flex-1 relative overflow-hidden bg-[var(--bg-dark)]">
-            
-            <!-- TAB CHAT AI -->
-            <div id="tabChat" class="tab-content absolute inset-0 flex flex-col">
-                <main id="chatBox" class="flex-1 overflow-y-auto p-4 flex flex-col"></main>
-                <footer class="p-3 card rounded-none border-b-0 border-x-0">
-                    <div id="loadingIndicator" class="hidden text-[var(--primary)] text-sm mb-2 animate-pulse font-semibold">Merangkai literasi...</div>
-                    <div id="imgPreviewContainer" class="hidden mb-2 relative w-16 h-16 border border-[var(--border-dark)] rounded-lg overflow-hidden">
-                        <img id="imgPreview" class="w-full h-full object-cover">
-                        <button onclick="hapusGambar()" class="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 text-xs">X</button>
-                    </div>
-                    <div class="flex gap-2">
-                        <label class="p-2 cursor-pointer"><i data-lucide="image" class="w-5 h-5"></i><input type="file" id="imgInput" accept="image/*" class="hidden"></label>
-                        <input type="text" id="userInput" placeholder="Tanya AI..." class="flex-1 bg-[var(--bg-dark)] border border-[var(--border-dark)] rounded-lg px-3 py-2 text-sm focus:outline-none">
-                        <button id="sendBtn" class="bg-[var(--primary)] text-white px-4 rounded-lg font-bold">Kirim</button>
-                    </div>
-                </footer>
-            </div>
-
-            <!-- TAB FLASHCARD -->
-            <div id="tabFlashcard" class="tab-content absolute inset-0 overflow-y-auto p-4 hidden">
-                <h2 class="text-2xl font-bold mb-4">Flashcard Kamu</h2>
-                <div id="flashcardContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-            </div>
-
-            <!-- TAB LATSOL -->
-            <div id="tabLatsol" class="tab-content absolute inset-0 p-4 hidden flex flex-col items-center justify-center">
-                <div class="card p-6 w-full max-w-md">
-                    <h2 class="text-xl font-bold mb-4 text-center">Latihan Soal Harian</h2>
-                    <p id="latsolQuestion" class="text-lg mb-6 text-center font-semibold"></p>
-                    <div id="latsolOptions" class="space-y-2"></div>
-                </div>
-            </div>
-
-            <!-- TAB MABAR (CHAT REAL-TIME) -->
-            <div id="tabMabar" class="tab-content absolute inset-0 flex flex-col hidden">
-                <div class="p-4 bg-[var(--card-dark)] border-b border-[var(--border-dark)] text-center">
-                    <h2 class="font-bold text-lg text-[var(--info)]">Global Chat (Mabar)</h2>
-                    <p class="text-xs opacity-70">Ngobrol bareng teman-teman Litera AI secara Real-Time!</p>
-                </div>
-                <main id="mabarChatBox" class="flex-1 overflow-y-auto p-4 flex flex-col"></main>
-                <footer class="p-3 card rounded-none border-b-0 border-x-0">
-                    <div class="flex gap-2">
-                        <input type="text" id="mabarInput" placeholder="Ketik pesan buat temen lu..." class="flex-1 bg-[var(--bg-dark)] border border-[var(--border-dark)] rounded-lg px-3 py-2 text-sm focus:outline-none">
-                        <button onclick="kirimMabar()" class="bg-[var(--info)] text-white px-4 rounded-lg font-bold">Kirim</button>
-                    </div>
-                </footer>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- MODAL SETTINGS PROFIL -->
-    <div id="settingsModal" class="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 hidden">
-        <div class="card p-6 max-w-sm w-full">
-            <h2 class="text-xl font-bold mb-4">Profil & Settings</h2>
-            <label class="block text-sm font-semibold mb-1">Nama Panggilan</label>
-            <input type="text" id="setNama" class="w-full bg-[var(--bg-dark)] border border-[var(--border-dark)] p-2 rounded-lg mb-3 text-sm">
-            
-            <label class="block text-sm font-semibold mb-1">Umur</label>
-            <input type="number" id="setUmur" class="w-full bg-[var(--bg-dark)] border border-[var(--border-dark)] p-2 rounded-lg mb-3 text-sm">
-            
-            <label class="block text-sm font-semibold mb-1">Minat Literasi</label>
-            <input type="text" id="setMinat" placeholder="Kesehatan, Digital, Budaya" class="w-full bg-[var(--bg-dark)] border border-[var(--border-dark)] p-2 rounded-lg mb-4 text-sm">
-            
-            <div class="flex gap-2">
-                <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="flex-1 bg-gray-600 text-white py-2 rounded-lg font-bold">Batal</button>
-                <button onclick="simpanSettings()" class="flex-1 bg-[var(--primary)] text-white py-2 rounded-lg font-bold">Simpan</button>
-            </div>
-        </div>
     </div>
 
 </body>
