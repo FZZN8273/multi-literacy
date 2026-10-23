@@ -83,8 +83,8 @@
         // ⚠️ CONFIG GROQ API (BISA 1 ATAU 2 KEY)
         // =====================================================================
         const apiKeysGroq = [
-            "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", 
-            "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" // Backup
+            "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", 
+            "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" // Backup
         ];
         let currentKeyIndex = 0;
 
@@ -108,8 +108,8 @@
         let currentUser = null;
         let chatHistory = [];
         let isPrivacyAgreed = false;
-        let myFlashcards = []; // Array buat nyimpen flashcard
-        let currentImageBase64 = null; // Nyimpen gambar yang diupload
+        let myFlashcards = [];
+        let currentImageBase64 = null;
 
         // --- LOGIKA PRIVACY ---
         privacyCheck.addEventListener('change', (e) => {
@@ -178,9 +178,9 @@
             }
         }
 
-        // --- FORMATTING TEKS MARKDOWN (Biar gak ada ** lagi) ---
+        // --- FORMATTING TEKS MARKDOWN ---
         function formatTeks(text) {
-            return marked.parse(text); // Mengubah **teks** jadi <strong>teks</strong>
+            return marked.parse(text); 
         }
 
         function addMessageToUI(text, isUser = false) {
@@ -257,10 +257,12 @@
             });
         }
 
-        // --- LOGIKA CHAT AI (DUAL KEY + VISION) ---
+        // --- LOGIKA CHAT AI ---
         async function fetchGroq(messages, useVision = false) {
             const key = apiKeysGroq[currentKeyIndex];
-            const model = useVision ? "llama-3.2-11b-vision-preview" : "llama-3.3-70b-versatile"; // Ganti ke 70b biasa kalau gak ada gambar
+            // Model Teks: openai/gpt-oss-120b (Sesuai Groq Dashboard)
+            // Model Vision: llama-3.2-11b-vision-preview
+            const model = useVision ? "llama-3.2-11b-vision-preview" : "openai/gpt-oss-120b"; 
 
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: 'POST',
@@ -283,14 +285,12 @@
             const text = userInput.value.trim();
             if ((!text && !currentImageBase64) || !currentUser) return;
 
-            // Tampilkan pesan user
             addMessageToUI(text || "[Mengirim Gambar]", true);
             userInput.value = '';
             
             userInput.disabled = true; sendBtn.disabled = true;
             loadingIndicator.classList.remove('hidden');
 
-            // Siapkan konten (Teks + Gambar kalau ada)
             let userContent = text;
             let isVision = false;
             if (currentImageBase64) {
@@ -314,7 +314,7 @@
                     [FLASHCARD: Pertanyaan 2 | Jawaban 2]
                     Jangan pakai format lain. Sistem akan otomatis menyimpannya.` 
                 },
-                ...chatHistory.slice(-6), // Ingat 6 pesan terakhir biar gak penuh
+                ...chatHistory.slice(-6),
                 { role: 'user', content: userContent }
             ];
 
@@ -322,23 +322,20 @@
                 const data = await fetchGroq(messages, isVision);
                 let botReply = data.choices[0].message.content;
 
-                // Ekstrak Flashcard kalau AI bikin
                 const flashcardRegex = /\[FLASHCARD:\s*(.+?)\s*\|\s*(.+?)\s*\]/g;
                 let match;
                 while ((match = flashcardRegex.exec(botReply)) !== null) {
                     myFlashcards.push({ front: match[1], back: match[2] });
                 }
-                // Bersihkan teks dari tag [FLASHCARD]
                 botReply = botReply.replace(flashcardRegex, '\n*(Flashcard berhasil ditambahkan ke tab Flashcard!)*\n');
                 renderFlashcards();
 
-                // Simpan memory
                 chatHistory.push({ role: 'user', content: text || "[Gambar]" });
                 chatHistory.push({ role: 'assistant', content: botReply });
                 saveMemory();
 
                 addMessageToUI(botReply, false);
-                hapusGambar(); // Hapus preview gambar setelah dikirim
+                hapusGambar(); 
             } catch (error) {
                 addMessageToUI(`❌ Error: ${error.message}`, false);
             } finally {
@@ -460,7 +457,6 @@
                         Merangkai literasi...
                     </div>
                     
-                    <!-- Image Preview -->
                     <div id="imgPreviewContainer" class="hidden mb-2 relative w-20 h-20 border border-[var(--border-color)] rounded-lg overflow-hidden">
                         <img id="imgPreview" class="w-full h-full object-cover">
                         <button onclick="hapusGambar()" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg w-6 h-6 flex items-center justify-center text-xs">X</button>
